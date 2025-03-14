@@ -13,9 +13,12 @@ app.use(cors());
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('MongoDB connection error:', err);
 });
 
 const db = mongoose.connection;
@@ -24,6 +27,18 @@ db.once("open", () => console.log("Connected to MongoDB"));
 // Add error handling for MongoDB connection
 db.on('error', (error) => {
   console.error('MongoDB connection error:', error);
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected');
 });
 
 // Import routes
